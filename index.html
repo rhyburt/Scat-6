@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>SCAT6 — Digital Assessment</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0a1628" />
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SCAT6" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #0a1628;
+    --ink-soft: #2c3e54;
+    --ink-mute: #5a6b80;
+    --paper: #fafaf7;
+    --paper-soft: #f3f1ea;
+    --line: #d8d4c8;
+    --line-soft: #e6e2d6;
+    --accent: #1a3a6e;
+    --accent-soft: #e8eef7;
+    --warn: #b3261e;
+    --warn-soft: #fdecea;
+    --ok: #1f6b3a;
+    --ok-soft: #e6f2eb;
+    --filled: #fff8db;
+    --filled-border: #d4b942;
+    --shadow: 0 1px 2px rgba(10,22,40,0.04), 0 4px 12px rgba(10,22,40,0.04);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  input, textarea, select, button { font-family: inherit; font-size: inherit; }
+  /* Prevent iOS zoom on focus */
+  input[type="text"], input[type="number"], input[type="date"], input[type="time"], input[type="email"], textarea, select {
+    font-size: 16px;
+  }
+
+  /* ===== Top toolbar ===== */
+  .toolbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--ink);
+    color: #fff;
+    padding: calc(10px + var(--safe-top)) 16px 10px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    flex-wrap: wrap;
+  }
+  .toolbar .brand {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toolbar .brand span { opacity: 0.55; font-weight: 400; margin-left: 6px; font-size: 12px; }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    opacity: 0.65;
+    letter-spacing: 0.02em;
+  }
+  .toolbar button {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 36px;
+  }
+  .toolbar button:active { background: rgba(255,255,255,0.2); }
+  .toolbar button.primary {
+    background: #fff; color: var(--ink); border-color: #fff;
+  }
+  .toolbar button.primary:active { background: #f0ede4; }
+  .toolbar button.danger { color: #ffb4b0; }
+
+  /* ===== Pages ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== Library page ===== */
+  .library-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 16px calc(24px + var(--safe-bottom));
+  }
+  .library-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+  }
+  .library-header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .library-header .sub {
+    color: var(--ink-mute);
+    font-size: 13px;
+  }
+  .new-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    width: 100%;
+    margin-bottom: 24px;
+    min-height: 48px;
+  }
+  .new-btn:active { background: #122a52; }
+
+  .assessment-list { display: flex; flex-direction: column; gap: 10px; }
+  .assessment-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .assessment-card:active {
+    transform: scale(0.99);
+    box-shadow: 0 1px 2px rgba(10,22,40,0.06);
+  }
+  .assessment-card .name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .assessment-card .meta {
+    color: var(--ink-mute);
+    font-size: 12px;
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .assessment-card .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .assessment-card .footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 4px;
+  }
+  .assessment-card .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge.dx-yes { background: var(--warn-soft); color: var(--warn); }
+  .badge.dx-no { background: var(--ok-soft); color: var(--ok); }
+  .badge.dx-deferred { background: var(--accent-soft); color: var(--accent); }
+  .badge.dx-incomplete { background: var(--paper-soft); color: var(--ink-mute); }
+
+  .assessment-card .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--warn);
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    min-height: 32px;
+  }
+  .assessment-card .delete-btn:active { background: var(--warn-soft); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-mute);
+  }
+  .empty-state .icon {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    color: var(--line);
+    margin-bottom: 12px;
+  }
+  .empty-state h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  /* ===== Document ===== */
+  .doc {
+    max-width: 1100px;
+    margin: 16px auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .doc-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 24px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .doc-header .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .doc-header .logo sup { font-size: 12px; vertical-align: super; opacity: 0.7; }
+  .doc-header .title-block { flex: 1; min-width: 0; }
+  .doc-header .title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .doc-header .subtitle {
+    font-size: 12px; opacity: 0.85; margin-top: 4px;
+  }
+  .doc-header .symbol {
+    width: 38px; height: 38px;
+    border: 2px solid #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .doc-header .symbol::after {
+    content: ''; width: 22px; height: 2px; background: #fff;
+  }
+  @media (max-width: 600px) {
+    .doc-header { padding: 18px 16px; gap: 12px; }
+    .doc-header .logo { font-size: 30px; }
+    .doc-header .title { font-size: 15px; }
+    .doc-header .subtitle { font-size: 11px; }
+    .doc-header .symbol { display: none; }
+  }
+
+  .section {
+    border-top: 1px solid var(--line-soft);
+    padding: 24px 24px;
+  }
+  @media (max-width: 600px) {
+    .section { padding: 18px 16px; }
+  }
+  .section:first-of-type { border-top: none; }
+  .section-label {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0 -24px 20px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  @media (max-width: 600px) {
+    .section-label { margin: 0 -16px 16px; padding-left: 16px; padding-right: 16px; }
+  }
+  .section-label.warn {
+    background: var(--warn-soft); color: var(--warn);
+  }
+  .section-label .num {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  .section h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .section h3:first-child { margin-top: 0; }
+  .section p { margin: 0 0 12px; color: var(--ink-soft); }
+  .section .instruction {
+    font-style: italic;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 10px 14px;
+    border-left: 3px solid var(--accent);
+    margin: 12px 0;
+    font-size: 13px;
+  }
+
+  /* ===== Field layouts ===== */
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 24px;
+  }
+  .field-grid.cols-1 { grid-template-columns: 1fr; }
+  .field-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="time"],
+  .field input[type="number"],
+  .field textarea,
+  .field select {
+    border: none;
+    border-bottom: 1.5px solid var(--line);
+    background: transparent;
+    padding: 6px 0;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+    min-height: 36px;
+  }
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+  .field input.has-value,
+  .field textarea.has-value,
+  .field select.has-value {
+    background: var(--filled);
+    border-bottom-color: var(--filled-border);
+    padding-left: 6px; padding-right: 6px;
+  }
+  .field textarea {
+    resize: vertical;
+    min-height: 70px;
+    border: 1.5px solid var(--line);
+    padding: 8px;
+    border-radius: 4px;
+  }
+  .field textarea.has-value {
+    border-color: var(--filled-border);
+  }
+
+  /* ===== Pill groups ===== */
+  .pill-group {
+    display: inline-flex;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .pill-group input { display: none; }
+  .pill-group label {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-right: 1px solid var(--line);
+    transition: all 0.12s;
+    user-select: none;
+    min-height: 36px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pill-group label:last-of-type { border-right: none; }
+  .pill-group input:checked + label {
+    background: var(--ink);
+    color: #fff;
+  }
+  .pill-group input[value="Y"]:checked + label,
+  .pill-group input[value="Yes"]:checked + label { background: var(--ok); }
+  .pill-group input[value="N"]:checked + label,
+  .pill-group input[value="No"]:checked + label { background: var(--warn); }
+
+  /* ===== Tables ===== */
+  .qtable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 16px;
+    font-size: 13px;
+  }
+  .qtable td, .qtable th {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line-soft);
+    text-align: left;
+    vertical-align: middle;
+  }
+  .qtable th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    background: var(--paper-soft);
+  }
+  .qtable td:last-child, .qtable th:last-child { text-align: right; }
+  .qtable .question-text { color: var(--ink); }
+
+  /* Symptom 0-6 scale */
+  #symptomScale { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .scale-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 1.6fr) repeat(7, minmax(36px, 1fr));
+    gap: 4px;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line-soft);
+    min-width: 480px;
+  }
+  .scale-row.header {
+    border-bottom: 2px solid var(--ink);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    padding-bottom: 6px;
+  }
+  .scale-row .scale-label { font-size: 13px; padding-left: 4px; }
+  .scale-cell { text-align: center; }
+  .scale-cell input { display: none; }
+  .scale-cell label {
+    display: block;
+    padding: 8px 0;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    transition: all 0.1s;
+    border: 1px solid transparent;
+    user-select: none;
+    min-height: 32px;
+  }
+  .scale-cell label:active { background: var(--paper-soft); }
+  .scale-cell input:checked + label {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  .scale-cell.zero input:checked + label { background: var(--ok); }
+  .scale-cell.high input:checked + label { background: var(--warn); }
+
+  /* Score boxes */
+  .score-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--paper-soft);
+    border-radius: 4px;
+    margin: 8px 0;
+  }
+  .score-row .score-label {
+    flex: 1;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .score-row .score-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--accent);
+    background: #fff;
+    padding: 4px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    min-width: 70px;
+    text-align: center;
+  }
+
+  /* Word list & digit pickers */
+  .word-list-pick {
+    display: flex; gap: 12px; margin: 8px 0;
+    align-items: center; flex-wrap: wrap;
+  }
+  .word-list-pick .pill-group label { padding: 8px 14px; }
+
+  .word-grid-wrap, .digit-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .word-grid {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 480px;
+  }
+  .word-grid th, .word-grid td {
+    padding: 8px 6px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .word-grid th {
+    background: var(--paper-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    text-align: center;
+  }
+  .word-grid th:first-child { text-align: left; }
+  .word-grid td.word { font-weight: 500; }
+  .word-grid td.trial { text-align: center; }
+  .word-grid td.alt { color: var(--ink-mute); text-align: center; font-style: italic; }
+  .word-grid tr.totals td {
+    background: var(--paper-soft);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+
+  .digit-table { width: 100%; border-collapse: collapse; margin: 8px 0; min-width: 520px; }
+  .digit-table th, .digit-table td {
+    padding: 8px 8px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13px;
+    text-align: center;
+  }
+  .digit-table th {
+    background: var(--paper-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+  }
+  .digit-table td.seq { font-family: 'JetBrains Mono', monospace; }
+
+  /* Months */
+  .months-row {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;
+  }
+  .months-row .month-chip {
+    cursor: pointer;
+    padding: 8px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #fff;
+    color: var(--ink);
+    user-select: none;
+    transition: all 0.12s;
+    min-height: 36px;
+    display: flex; align-items: center;
+  }
+  .months-row .month-chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* Red flags */
+  .red-flags {
+    border: 2px solid var(--warn);
+    background: var(--warn-soft);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 12px 0;
+  }
+  .red-flags h4 {
+    margin: 0 0 8px; color: var(--warn);
+    text-transform: uppercase; letter-spacing: 0.05em; font-size: 13px;
+  }
+  .red-flags ul {
+    columns: 2; column-gap: 24px;
+    margin: 0; padding-left: 18px;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .red-flags li { margin-bottom: 3px; break-inside: avoid; }
+  @media (max-width: 480px) {
+    .red-flags ul { columns: 1; }
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 720px) {
+    .two-col { grid-template-columns: 1fr; }
+    .field-grid, .field-grid.cols-3 { grid-template-columns: 1fr; }
+  }
+
+  .decision-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .decision-table {
+    width: 100%; border-collapse: collapse; margin: 12px 0;
+    min-width: 560px;
+  }
+  .decision-table th, .decision-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    text-align: left;
+  }
+  .decision-table th {
+    background: var(--paper-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    font-weight: 600;
+  }
+  .decision-table td .auto-val {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Footer note */
+  .footer-note {
+    padding: 18px 24px calc(18px + var(--safe-bottom));
+    background: var(--paper-soft);
+    font-size: 11px;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line);
+    line-height: 1.5;
+  }
+  .footer-note strong { color: var(--ink); }
+
+  /* Save flash */
+  .save-flash {
+    position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ok); color: #fff;
+    padding: 10px 18px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 200;
+  }
+  .save-flash.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,22,40,0.5);
+    z-index: 300;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal h3 {
+    font-family: 'Fraunces', serif;
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .modal p { margin: 0 0 18px; color: var(--ink-soft); font-size: 14px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button {
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 40px;
+  }
+  .modal-actions button.primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .modal-actions button.danger {
+    background: var(--warn); color: #fff; border-color: var(--warn);
+  }
+
+  /* Print — minimal, content only */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    .toolbar, .modal-backdrop, .save-flash { display: none !important; }
+    body { background: #fff; }
+    #libraryPage { display: none !important; }
+    #assessmentPage { display: block !important; }
+    .doc {
+      margin: 0; max-width: none;
+      box-shadow: none; border: none;
+    }
+    .section { page-break-inside: avoid; padding: 12px 0; }
+    .section-label { margin: 0 0 12px; padding: 6px 12px; }
+    .doc-header { padding: 16px 0; }
+    .field input.has-value,
+    .field textarea.has-value,
+    .field select.has-value {
+      background: transparent !important;
+      border-bottom: 1px solid var(--ink) !important;
+    }
+    .pill-group label { padding: 3px 10px; min-height: 0; }
+    button { display: none !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TOOLBAR ===================== -->
+<div class="toolbar">
+  <div class="brand" onclick="goToLibrary()">SCAT6 <span>digital</span></div>
+  <div class="status" id="saveStatus"></div>
+  <div class="spacer"></div>
+  <div id="assessmentToolbarBtns" style="display: none; gap: 8px;">
+    <button onclick="goToLibrary()">← All</button>
+    <button onclick="window.print()" class="primary">Export PDF</button>
+  </div>
+</div>
+
+<!-- ===================== LIBRARY PAGE ===================== -->
+<div class="page active" id="libraryPage">
+  <div class="library-wrap">
+    <div class="library-header">
+      <div>
+        <h1>Assessments</h1>
+        <div class="sub">Saved locally on this device</div>
+      </div>
+    </div>
+    <button class="new-btn" onclick="createNewAssessment()">+ New Assessment</button>
+    <div id="assessmentList" class="assessment-list"></div>
+  </div>
+</div>
+
+<!-- ===================== ASSESSMENT PAGE ===================== -->
+<div class="page" id="assessmentPage">
+  <div class="doc" id="scatDoc">
+
+    <div class="doc-header">
+      <div class="logo">SCAT6<sup>™</sup></div>
+      <div class="title-block">
+        <div class="title">Sport Concussion Assessment Tool</div>
+        <div class="subtitle">For Adolescents (13 years +) & Adults · For use by Health Care Professionals only</div>
+      </div>
+      <div class="symbol"></div>
+    </div>
+
+    <!-- ATHLETE BACKGROUND -->
+    <div class="section">
+      <div class="section-label">Athlete Information</div>
+      <div class="field-grid">
+        <div class="field"><label>Athlete Name</label><input type="text" data-field="athleteName" /></div>
+        <div class="field"><label>ID Number</label><input type="text" data-field="idNumber" /></div>
+        <div class="field"><label>Date of Birth</label><input type="date" data-field="dob" /></div>
+        <div class="field"><label>Date of Examination</label><input type="date" data-field="examDate" /></div>
+        <div class="field"><label>Date of Injury</label><input type="date" data-field="injuryDate" /></div>
+        <div class="field"><label>Time of Injury</label><input type="time" data-field="injuryTime" /></div>
+        <div class="field">
+          <label>Sex</label>
+          <select data-field="sex"><option value=""></option><option>Male</option><option>Female</option><option>Prefer Not To Say</option><option>Other</option></select>
+        </div>
+        <div class="field">
+          <label>Dominant Hand</label>
+          <select data-field="hand"><option value=""></option><option>Left</option><option>Right</option><option>Ambidextrous</option></select>
+        </div>
+        <div class="field"><label>Sport / Team / School</label><input type="text" data-field="team" /></div>
+        <div class="field"><label>Examiner</label><input type="text" data-field="examiner" /></div>
+        <div class="field"><label>Current Year in School</label><input type="text" data-field="yearSchool" /></div>
+        <div class="field"><label>Years of Education (Total)</label><input type="number" data-field="yearsEdu" /></div>
+        <div class="field"><label>First Language</label><input type="text" data-field="firstLang" /></div>
+        <div class="field"><label>Preferred Language</label><input type="text" data-field="prefLang" /></div>
+      </div>
+
+      <h3 style="margin-top: 24px;">Concussion History</h3>
+      <div class="field-grid">
+        <div class="field"><label>Number of diagnosed concussions in past</label><input type="number" data-field="pastConcussions" /></div>
+        <div class="field"><label>When was the most recent concussion?</label><input type="text" data-field="recentConcussionDate" /></div>
+        <div class="field" style="grid-column: 1 / -1;"><label>Primary Symptoms</label><input type="text" data-field="primarySymptoms" /></div>
+        <div class="field"><label>Recovery time from most recent (days)</label><input type="number" data-field="recoveryDays" /></div>
+      </div>
+    </div>
+
+    <!-- IMMEDIATE / ON-FIELD -->
+    <div class="section">
+      <div class="section-label warn">Immediate Assessment / Neuro Screen</div>
+      <p>The following elements should be used in the evaluation of all athletes who are suspected of having a concussion prior to proceeding to the cognitive assessment, ideally completed "on-field" after first aid/emergency care priorities are completed.</p>
+
+      <div class="red-flags">
+        <h4>Box 1 — Red Flags</h4>
+        <ul>
+          <li>Neck pain or tenderness</li>
+          <li>Seizure or convulsion</li>
+          <li>Double vision</li>
+          <li>Loss of consciousness</li>
+          <li>Weakness or tingling/burning in more than 1 arm or in the legs</li>
+          <li>Deteriorating conscious state</li>
+          <li>Vomiting</li>
+          <li>Severe or increasing headache</li>
+          <li>Increasingly restless, agitated or combative</li>
+          <li>GCS &lt;15</li>
+          <li>Visible deformity of the skull</li>
+        </ul>
+      </div>
+
+      <h3>Step 1 — Observable Signs</h3>
+      <div style="display: flex; gap: 24px; margin-bottom: 12px;">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+          <input type="checkbox" data-field="signWitnessed" /> Witnessed
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+          <input type="checkbox" data-field="signVideo" /> Observed on Video
+        </label>
+      </div>
+      <table class="qtable" id="observableSignsTable"></table>
+
+      <h3>Step 2 — Glasgow Coma Scale</h3>
+      <div class="field-grid cols-3">
+        <div class="field"><label>Time of Assessment</label><input type="time" data-field="gcsTime" /></div>
+        <div class="field"><label>Date of Assessment</label><input type="date" data-field="gcsDate" /></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <table class="qtable">
+            <tr><th colspan="2">Best Eye Response (E)</th></tr>
+            <tr><td><label><input type="radio" name="gcs_e" value="1" data-field="gcs_e" /> No eye opening</label></td><td>1</td></tr>
+            <tr><td><label><input type="radio" name="gcs_e" value="2" data-field="gcs_e" /> Eye opening to pain</label></td><td>2</td></tr>
+            <tr><td><label><input type="radio" name="gcs_e" value="3" data-field="gcs_e" /> Eye opening to speech</label></td><td>3</td></tr>
+            <tr><td><label><input type="radio" name="gcs_e" value="4" data-field="gcs_e" /> Eyes opening spontaneously</label></td><td>4</td></tr>
+          </table>
+        </div>
+        <div>
+          <table class="qtable">
+            <tr><th colspan="2">Best Verbal Response (V)</th></tr>
+            <tr><td><label><input type="radio" name="gcs_v" value="1" data-field="gcs_v" /> No verbal response</label></td><td>1</td></tr>
+            <tr><td><label><input type="radio" name="gcs_v" value="2" data-field="gcs_v" /> Incomprehensible sounds</label></td><td>2</td></tr>
+            <tr><td><label><input type="radio" name="gcs_v" value="3" data-field="gcs_v" /> Inappropriate words</label></td><td>3</td></tr>
+            <tr><td><label><input type="radio" name="gcs_v" value="4" data-field="gcs_v" /> Confused</label></td><td>4</td></tr>
+            <tr><td><label><input type="radio" name="gcs_v" value="5" data-field="gcs_v" /> Oriented</label></td><td>5</td></tr>
+          </table>
+        </div>
+      </div>
+      <table class="qtable">
+        <tr><th colspan="2">Best Motor Response (M)</th></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="1" data-field="gcs_m" /> No motor response</label></td><td>1</td></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="2" data-field="gcs_m" /> Extension to pain</label></td><td>2</td></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="3" data-field="gcs_m" /> Abnormal flexion to pain</label></td><td>3</td></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="4" data-field="gcs_m" /> Flexion/withdrawal to pain</label></td><td>4</td></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="5" data-field="gcs_m" /> Localized to pain</label></td><td>5</td></tr>
+        <tr><td><label><input type="radio" name="gcs_m" value="6" data-field="gcs_m" /> Obeys commands</label></td><td>6</td></tr>
+      </table>
+      <div class="score-row">
+        <div class="score-label">Glasgow Coma Score (E + V + M)</div>
+        <div class="score-val" id="gcsTotal">—</div>
+      </div>
+
+      <h3>Step 3 — Cervical Spine Assessment</h3>
+      <p style="font-size: 12px; color: var(--ink-mute);">In a patient who is not lucid or fully conscious, a cervical spine injury should be assumed and spinal precautions taken.</p>
+      <table class="qtable" id="cervicalTable"></table>
+
+      <h3>Step 4 — Coordination & Ocular/Motor Screen</h3>
+      <table class="qtable" id="coordTable"></table>
+      <div class="field" style="margin-top: 8px;">
+        <label>If extraocular eye movements abnormal, describe</label>
+        <textarea data-field="eomDescribe"></textarea>
+      </div>
+
+      <h3>Step 5 — Memory Assessment (Maddocks Questions)</h3>
+      <div class="instruction">"I am going to ask you a few questions, please listen carefully and give your best effort. First, tell me what happened?"</div>
+      <p style="font-size: 12px; color: var(--ink-mute);">Modified appropriately for each sport; 1 point for each correct answer.</p>
+      <table class="qtable" id="maddocksTable"></table>
+      <div class="score-row">
+        <div class="score-label">Maddocks Score</div>
+        <div class="score-val" id="maddocksTotal">— / 5</div>
+      </div>
+    </div>
+
+    <!-- OFF-FIELD -->
+    <div class="section">
+      <div class="section-label">Off-Field Assessment</div>
+      <p>The cognitive assessment should be done in a distraction-free environment with the athlete in a resting state <strong>after</strong> completion of the Immediate Assessment/Neuro Screen.</p>
+
+      <h3>Step 1 — Athlete Background</h3>
+      <table class="qtable" id="bgTable"></table>
+      <div class="field-grid" style="margin-top: 12px;">
+        <div class="field"><label>Notes</label><textarea data-field="bgNotes"></textarea></div>
+        <div class="field"><label>Current medications (if any)</label><textarea data-field="meds"></textarea></div>
+      </div>
+
+      <h3>Step 2 — Symptom Evaluation</h3>
+      <div style="display: flex; gap: 18px; align-items: center; margin: 8px 0 14px; flex-wrap: wrap;">
+        <div class="pill-group">
+          <input type="radio" name="evalType" value="baseline" id="evalBaseline" data-field="evalType" />
+          <label for="evalBaseline">Baseline</label>
+          <input type="radio" name="evalType" value="postinjury" id="evalPost" data-field="evalType" />
+          <label for="evalPost">Post-injury</label>
+        </div>
+        <div class="field" style="flex: 1; min-width: 200px;">
+          <label>Time elapsed since suspected injury</label>
+          <input type="text" data-field="elapsed" placeholder="e.g. 2 hours" />
+        </div>
+      </div>
+      <div class="instruction">
+        <strong>Baseline:</strong> "Please rate your symptoms below based on how you typically feel..." <br/>
+        <strong>Post-injury:</strong> "Please rate your symptoms below based on how you feel now..." <br/>
+        0 = none · 1 = very mild · 6 = severe
+      </div>
+
+      <div id="symptomScale"></div>
+
+      <div class="two-col" style="margin-top: 16px;">
+        <div class="score-row">
+          <div class="score-label">Total symptoms</div>
+          <div class="score-val" id="sxCount">— / 22</div>
+        </div>
+        <div class="score-row">
+          <div class="score-label">Severity score</div>
+          <div class="score-val" id="sxSev">— / 132</div>
+        </div>
+      </div>
+
+      <div class="field-grid" style="margin-top: 12px;">
+        <div class="field" style="flex-direction: row; align-items: center; gap: 12px;">
+          <label style="margin: 0;">Worse with physical activity?</label>
+          <div class="pill-group">
+            <input type="radio" name="worsePhys" value="Y" id="wp_y" data-field="worsePhys" /><label for="wp_y">Yes</label>
+            <input type="radio" name="worsePhys" value="N" id="wp_n" data-field="worsePhys" /><label for="wp_n">No</label>
+          </div>
+        </div>
+        <div class="field" style="flex-direction: row; align-items: center; gap: 12px;">
+          <label style="margin: 0;">Worse with mental activity?</label>
+          <div class="pill-group">
+            <input type="radio" name="worseMent" value="Y" id="wm_y" data-field="worseMent" /><label for="wm_y">Yes</label>
+            <input type="radio" name="worseMent" value="N" id="wm_n" data-field="worseMent" /><label for="wm_n">No</label>
+          </div>
+        </div>
+        <div class="field"><label>If 100% is feeling perfectly normal, what % do you feel?</label><input type="text" data-field="percentNormal" /></div>
+        <div class="field"><label>If not 100%, why?</label><textarea data-field="whyNot100"></textarea></div>
+      </div>
+    </div>
+
+    <!-- COGNITIVE -->
+    <div class="section">
+      <div class="section-label"><span class="num">3</span>Cognitive Screening (SAC)</div>
+
+      <h3>Orientation</h3>
+      <table class="qtable" id="orientationTable"></table>
+      <div class="score-row">
+        <div class="score-label">Orientation Score</div>
+        <div class="score-val" id="orientTotal">— / 5</div>
+      </div>
+
+      <h3>Immediate Memory</h3>
+      <p style="color: var(--warn); font-size: 12px; font-weight: 500;">All 3 trials must be administered irrespective of the number correct on Trial 1. Administer at the rate of one word per second.</p>
+      <div class="instruction">
+        <strong>Trial 1:</strong> "I am going to test your memory. I will read you a list of words and when I am done, repeat back as many words as you can remember, in any order." <br/>
+        <strong>Trials 2 & 3:</strong> "I am going to repeat the same list. Repeat back as many words as you can remember in any order, even if you said the word before in a previous trial."
+      </div>
+      <div class="word-list-pick">
+        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--ink-mute); letter-spacing: 0.04em;">Word List:</span>
+        <div class="pill-group">
+          <input type="radio" name="wordList" value="A" id="wlA" data-field="wordList" /><label for="wlA">List A</label>
+          <input type="radio" name="wordList" value="B" id="wlB" data-field="wordList" /><label for="wlB">List B</label>
+          <input type="radio" name="wordList" value="C" id="wlC" data-field="wordList" /><label for="wlC">List C</label>
+        </div>
+      </div>
+      <div class="word-grid-wrap">
+        <table class="word-grid" id="immediateMemoryTable"></table>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Immediate Memory Score</div>
+        <div class="score-val" id="immediateMemoryTotal">— / 30</div>
+      </div>
+      <div class="field" style="max-width: 320px;">
+        <label>Time Last Trial Completed</label>
+        <input type="time" data-field="immediateMemoryTime" />
+      </div>
+
+      <h3>Concentration — Digits Backward</h3>
+      <div class="instruction">"I'm going to read a string of numbers and when I am done, you repeat them back to me in reverse order. For example, if I say 7-1-9, you would say 9-1-7."</div>
+      <div class="word-list-pick">
+        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--ink-mute); letter-spacing: 0.04em;">Digit List:</span>
+        <div class="pill-group">
+          <input type="radio" name="digitList" value="A" id="dlA" data-field="digitList" /><label for="dlA">List A</label>
+          <input type="radio" name="digitList" value="B" id="dlB" data-field="digitList" /><label for="dlB">List B</label>
+          <input type="radio" name="digitList" value="C" id="dlC" data-field="digitList" /><label for="dlC">List C</label>
+        </div>
+      </div>
+      <div class="digit-table-wrap">
+        <table class="digit-table" id="digitsTable"></table>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Digits Score</div>
+        <div class="score-val" id="digitsTotal">— / 4</div>
+      </div>
+
+      <h3>Concentration — Months in Reverse Order</h3>
+      <div class="instruction">"Now tell me the months of the year in reverse order as quickly and as accurately as possible. Start with the last month and go backward. So you'll say December, November... go ahead."</div>
+      <p style="font-size: 12px; color: var(--ink-mute);">Tap each month as the athlete says it correctly. 1 point if no errors and completion under 30 seconds.</p>
+      <div class="months-row" id="monthsRow"></div>
+      <div class="field-grid cols-3" style="margin-top: 8px;">
+        <div class="field"><label>Time taken (sec)</label><input type="number" data-field="monthsTime" /></div>
+        <div class="field"><label>Number of errors</label><input type="number" data-field="monthsErrors" /></div>
+        <div class="field" style="justify-content: flex-end;">
+          <div class="score-row" style="margin: 0;">
+            <div class="score-label" style="font-size: 12px;">Months</div>
+            <div class="score-val" id="monthsScore">— / 1</div>
+          </div>
+        </div>
+      </div>
+      <div class="score-row" style="background: var(--accent-soft);">
+        <div class="score-label" style="color: var(--accent);">Concentration (Digits + Months)</div>
+        <div class="score-val" id="concTotal">— / 5</div>
+      </div>
+    </div>
+
+    <!-- BALANCE -->
+    <div class="section">
+      <div class="section-label"><span class="num">4</span>Coordination & Balance</div>
+
+      <h3>Modified Balance Error Scoring System (mBESS)</h3>
+      <p style="font-size: 12px; color: var(--ink-mute);">20 seconds each stance. Test the non-dominant foot.</p>
+      <div class="field-grid cols-3">
+        <div class="field">
+          <label>Foot Tested</label>
+          <div class="pill-group" style="margin-top: 4px;">
+            <input type="radio" name="footTested" value="Left" id="ftL" data-field="footTested" /><label for="ftL">Left</label>
+            <input type="radio" name="footTested" value="Right" id="ftR" data-field="footTested" /><label for="ftR">Right</label>
+          </div>
+        </div>
+        <div class="field"><label>Testing Surface</label><input type="text" data-field="surface" placeholder="hard floor, field..." /></div>
+        <div class="field"><label>Footwear</label><input type="text" data-field="footwear" placeholder="shoes, barefoot..." /></div>
+      </div>
+
+      <div class="two-col" style="margin-top: 16px;">
+        <div>
+          <h3 style="font-size: 14px; margin-top: 0;">Firm Surface</h3>
+          <table class="qtable">
+            <tr><th>Stance</th><th>Errors</th></tr>
+            <tr><td>Double Leg</td><td><input type="number" min="0" max="10" data-field="bess_dl" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr><td>Tandem</td><td><input type="number" min="0" max="10" data-field="bess_ts" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr><td>Single Leg</td><td><input type="number" min="0" max="10" data-field="bess_sl" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr style="background: var(--paper-soft);"><td><strong>Total</strong></td><td><strong id="bessTotal">— / 30</strong></td></tr>
+          </table>
+        </div>
+        <div>
+          <h3 style="font-size: 14px; margin-top: 0;">On Foam <span style="font-weight: 400; font-size: 11px; color: var(--ink-mute); text-transform: none; letter-spacing: 0;">(Optional)</span></h3>
+          <table class="qtable">
+            <tr><th>Stance</th><th>Errors</th></tr>
+            <tr><td>Double Leg</td><td><input type="number" min="0" max="10" data-field="foam_dl" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr><td>Tandem</td><td><input type="number" min="0" max="10" data-field="foam_ts" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr><td>Single Leg</td><td><input type="number" min="0" max="10" data-field="foam_sl" style="width: 60px; text-align: center;"/> / 10</td></tr>
+            <tr style="background: var(--paper-soft);"><td><strong>Total</strong></td><td><strong id="foamTotal">— / 30</strong></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h3>Timed Tandem Gait</h3>
+      <div class="instruction">"Please walk heel-to-toe quickly to the end of the tape, turn around and come back as fast as you can without separating your feet or stepping off the line."</div>
+      <p style="font-size: 12px; color: var(--ink-mute);">3-metre line. Time all 3 trials.</p>
+      <div class="field-grid cols-3">
+        <div class="field"><label>Trial 1 (sec)</label><input type="number" step="0.01" data-field="tg1" /></div>
+        <div class="field"><label>Trial 2 (sec)</label><input type="number" step="0.01" data-field="tg2" /></div>
+        <div class="field"><label>Trial 3 (sec)</label><input type="number" step="0.01" data-field="tg3" /></div>
+        <div class="field"><label>Average</label><input type="text" id="tgAvg" readonly style="background: var(--paper-soft);"/></div>
+        <div class="field"><label>Fastest</label><input type="text" id="tgFastest" readonly style="background: var(--paper-soft);"/></div>
+      </div>
+
+      <h3>Dual Task Tandem Gait <span style="font-weight: 400; font-size: 11px; color: var(--ink-mute); text-transform: none; letter-spacing: 0;">(Optional)</span></h3>
+      <div class="instruction">"Now while you walk heel-to-toe, count backwards out loud by 7s. Starting integer 88, go!"</div>
+      <p style="font-size: 12px; color: var(--ink-mute);">Trial 1: 88 · Trial 2: 90 · Trial 3: 98</p>
+      <table class="qtable">
+        <tr><th>Trial</th><th>Errors</th><th>Time (sec)</th></tr>
+        <tr><td>Trial 1 (88)</td><td><input type="number" data-field="dt1_err" style="width: 60px;"/></td><td><input type="number" step="0.01" data-field="dt1_time" style="width: 80px;"/></td></tr>
+        <tr><td>Trial 2 (90)</td><td><input type="number" data-field="dt2_err" style="width: 60px;"/></td><td><input type="number" step="0.01" data-field="dt2_time" style="width: 80px;"/></td></tr>
+        <tr><td>Trial 3 (98)</td><td><input type="number" data-field="dt3_err" style="width: 60px;"/></td><td><input type="number" step="0.01" data-field="dt3_time" style="width: 80px;"/></td></tr>
+      </table>
+      <div class="field-grid cols-3" style="margin-top: 8px;">
+        <div class="field"><label>Alternate starting integer</label><input type="number" data-field="dt_alt_int"/></div>
+        <div class="field"><label>Errors</label><input type="number" data-field="dt_alt_err"/></div>
+        <div class="field"><label>Time</label><input type="number" step="0.01" data-field="dt_alt_time"/></div>
+      </div>
+
+      <div style="display: flex; gap: 16px; align-items: center; margin-top: 16px; flex-wrap: wrap;">
+        <label style="font-size: 13px;">Trials not completed due to walking errors or other reasons?</label>
+        <div class="pill-group">
+          <input type="radio" name="trialsIncomplete" value="Yes" id="tiY" data-field="trialsIncomplete" /><label for="tiY">Yes</label>
+          <input type="radio" name="trialsIncomplete" value="No" id="tiN" data-field="trialsIncomplete" /><label for="tiN">No</label>
+        </div>
+      </div>
+      <div class="field" style="margin-top: 8px;">
+        <label>If yes, please explain</label>
+        <textarea data-field="trialsExplain"></textarea>
+      </div>
+    </div>
+
+    <!-- DELAYED RECALL -->
+    <div class="section">
+      <div class="section-label"><span class="num">5</span>Delayed Recall</div>
+      <p style="color: var(--warn); font-size: 13px; font-weight: 500;">Perform after at least 5 minutes have elapsed since the end of Immediate Memory.</p>
+      <div class="instruction">"Do you remember that list of words I read a few times earlier? Tell me as many words from the list as you can remember in any order."</div>
+      <div class="field" style="max-width: 320px;">
+        <label>Time started</label>
+        <input type="time" data-field="delayedTime" />
+      </div>
+      <div class="word-grid-wrap">
+        <table class="word-grid" id="delayedRecallTable"></table>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Delayed Recall Score</div>
+        <div class="score-val" id="delayedTotal">— / 10</div>
+      </div>
+
+      <h3 style="margin-top: 28px;">Total Cognitive Score</h3>
+      <table class="qtable" style="max-width: 480px;">
+        <tr><td>Orientation</td><td style="text-align: right;"><span class="auto-val" id="totOrient" style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600;">— / 5</span></td></tr>
+        <tr><td>Immediate Memory</td><td style="text-align: right;"><span class="auto-val" id="totIm" style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600;">— / 30</span></td></tr>
+        <tr><td>Concentration</td><td style="text-align: right;"><span class="auto-val" id="totConc" style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600;">— / 5</span></td></tr>
+        <tr><td>Delayed Recall</td><td style="text-align: right;"><span class="auto-val" id="totDr" style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600;">— / 10</span></td></tr>
+        <tr style="background: var(--accent-soft);"><td><strong>TOTAL</strong></td><td style="text-align: right;"><span class="auto-val" id="totCog" style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600; font-size: 18px;">— / 50</span></td></tr>
+      </table>
+
+      <div style="display: flex; gap: 16px; align-items: center; margin-top: 16px; flex-wrap: wrap;">
+        <label style="font-size: 13px;">If known prior, is the athlete different from their usual self?</label>
+        <div class="pill-group">
+          <input type="radio" name="differentSelf" value="Yes" id="ds_y" data-field="differentSelf" /><label for="ds_y">Yes</label>
+          <input type="radio" name="differentSelf" value="No" id="ds_n" data-field="differentSelf" /><label for="ds_n">No</label>
+          <input type="radio" name="differentSelf" value="N/A" id="ds_na" data-field="differentSelf" /><label for="ds_na">N/A</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECISION -->
+    <div class="section">
+      <div class="section-label"><span class="num">6</span>Decision</div>
+      <div class="decision-table-wrap">
+        <table class="decision-table">
+          <tr>
+            <th>Domain</th>
+            <th><input type="date" data-field="decDate1" style="border:none; background: transparent; font-size: 13px;"/></th>
+            <th><input type="date" data-field="decDate2" style="border:none; background: transparent; font-size: 13px;"/></th>
+            <th><input type="date" data-field="decDate3" style="border:none; background: transparent; font-size: 13px;"/></th>
+          </tr>
+          <tr><td>Neurological Exam (acute)</td>
+            <td><select data-field="neuro1" style="border:none;"><option value=""></option><option>Normal</option><option>Abnormal</option></select></td>
+            <td><select data-field="neuro2" style="border:none;"><option value=""></option><option>Normal</option><option>Abnormal</option></select></td>
+            <td><select data-field="neuro3" style="border:none;"><option value=""></option><option>Normal</option><option>Abnormal</option></select></td>
+          </tr>
+          <tr><td>Symptom number (of 22)</td><td><span class="auto-val" id="dec_sxnum">—</span></td><td><input type="text" data-field="dec_sxnum2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_sxnum3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Symptom severity (of 132)</td><td><span class="auto-val" id="dec_sxsev">—</span></td><td><input type="text" data-field="dec_sxsev2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_sxsev3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Orientation (of 5)</td><td><span class="auto-val" id="dec_orient">—</span></td><td><input type="text" data-field="dec_orient2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_orient3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Immediate memory (of 30)</td><td><span class="auto-val" id="dec_im">—</span></td><td><input type="text" data-field="dec_im2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_im3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Concentration (of 5)</td><td><span class="auto-val" id="dec_conc">—</span></td><td><input type="text" data-field="dec_conc2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_conc3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Delayed recall (of 10)</td><td><span class="auto-val" id="dec_dr">—</span></td><td><input type="text" data-field="dec_dr2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_dr3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Cognitive total (of 50)</td><td><span class="auto-val" id="dec_cogtot">—</span></td><td><input type="text" data-field="dec_cogtot2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_cogtot3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>mBESS total errors (of 30)</td><td><span class="auto-val" id="dec_bess">—</span></td><td><input type="text" data-field="dec_bess2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_bess3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Tandem gait fastest time</td><td><span class="auto-val" id="dec_tg">—</span></td><td><input type="text" data-field="dec_tg2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_tg3" style="border:none; width: 100%;"/></td></tr>
+          <tr><td>Dual task fastest time</td><td><span class="auto-val" id="dec_dt">—</span></td><td><input type="text" data-field="dec_dt2" style="border:none; width: 100%;"/></td><td><input type="text" data-field="dec_dt3" style="border:none; width: 100%;"/></td></tr>
+        </table>
+      </div>
+
+      <h3>Disposition</h3>
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <label style="font-size: 13px; font-weight: 600;">Concussion diagnosed?</label>
+        <div class="pill-group">
+          <input type="radio" name="dxConc" value="Yes" id="dx_y" data-field="dxConc" /><label for="dx_y">Yes</label>
+          <input type="radio" name="dxConc" value="No" id="dx_n" data-field="dxConc" /><label for="dx_n">No</label>
+          <input type="radio" name="dxConc" value="Deferred" id="dx_d" data-field="dxConc" /><label for="dx_d">Deferred</label>
+        </div>
+      </div>
+
+      <h3>HCP Attestation</h3>
+      <p style="font-size: 12px; font-style: italic; color: var(--ink-mute);">I am an HCP and I have personally administered or supervised the administration of this SCAT6.</p>
+      <div class="field-grid">
+        <div class="field"><label>Name</label><input type="text" data-field="hcpName"/></div>
+        <div class="field"><label>Title / Speciality</label><input type="text" data-field="hcpTitle"/></div>
+        <div class="field"><label>Registration / License Number</label><input type="text" data-field="hcpReg"/></div>
+        <div class="field"><label>Date</label><input type="date" data-field="hcpDate"/></div>
+        <div class="field" style="grid-column: 1 / -1;"><label>Signature (typed)</label><input type="text" data-field="hcpSig"/></div>
+      </div>
+
+      <h3>Additional Clinical Notes</h3>
+      <div class="field"><textarea data-field="clinicalNotes" style="min-height: 140px;"></textarea></div>
+
+      <button onclick="confirmDelete()" style="margin-top: 24px; background: transparent; border: 1px solid var(--warn); color: var(--warn); padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">Delete this assessment</button>
+    </div>
+
+    <div class="footer-note">
+      <strong>Note:</strong> Scoring on the SCAT6 should not be used as a stand-alone method to diagnose concussion, measure recovery, or make decisions about an athlete's readiness to return to sport after concussion. An athlete can score within normal limits on the SCAT6 and still have a concussion. SCAT6 © Concussion in Sport Group / BMJ 2023 — content reproduced for clinical use; not for commercial redistribution.
+    </div>
+  </div>
+</div>
+
+<div class="save-flash" id="saveFlash">Saved ✓</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Confirm</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="danger" id="modalConfirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// SCAT6 PWA
+// Storage strategy: per-assessment localStorage entries + an index list
+// =====================================================================
+
+const STORAGE_PREFIX = "scat6_";
+const INDEX_KEY = "scat6_index";
+
+const observableSigns = [
+  ["Lying motionless on playing surface", "obs_motionless"],
+  ["Falling unprotected to the surface", "obs_falling"],
+  ["Balance/gait difficulties, motor incoordination, ataxia", "obs_balance"],
+  ["Disorientation or confusion, staring, limited responsiveness", "obs_confusion"],
+  ["Blank or vacant look", "obs_vacant"],
+  ["Facial injury after head trauma", "obs_facial"],
+  ["Impact seizure", "obs_seizure"],
+  ["High-risk mechanism of injury (sport-dependent)", "obs_mechanism"],
+];
+const cervicalQs = [
+  ["Does the athlete report neck pain at rest?", "cv_pain"],
+  ["Is there tenderness to palpation?", "cv_tender"],
+  ["If NO neck pain and NO tenderness, full active pain-free ROM?", "cv_rom"],
+  ["Are limb strength and sensation normal?", "cv_strength"],
+];
+const coordQs = [
+  ["Coordination: finger-to-nose normal both hands, eyes open & closed?", "co_finger"],
+  ["Ocular/Motor: side-to-side and up-down without double vision?", "co_eyes"],
+  ["Are observed extraocular eye movements normal?", "co_eom"],
+];
+const maddocksQs = [
+  ["What venue are we at today?", "md_venue"],
+  ["Which half is it now?", "md_half"],
+  ["Who scored last in this match?", "md_scored"],
+  ["What team did you play last week / game?", "md_lastteam"],
+  ["Did your team win the last game?", "md_won"],
+];
+const bgQs = [
+  ["Hospitalised for head injury?", "bg_hosp"],
+  ["Diagnosed/treated for headache disorder or migraine?", "bg_migraine"],
+  ["Diagnosed with a learning disability/dyslexia?", "bg_ld"],
+  ["Diagnosed with attention deficit hyperactivity disorder (ADHD)?", "bg_adhd"],
+  ["Diagnosed with depression, anxiety, or other psychological disorder?", "bg_psych"],
+];
+const symptoms = [
+  "Headaches", "Pressure in head", "Neck pain", "Nausea or vomiting",
+  "Dizziness", "Blurred vision", "Balance problems", "Sensitivity to light",
+  "Sensitivity to noise", "Feeling slowed down", "Feeling like \u201Cin a fog\u201D",
+  "\u201CDon't feel right\u201D", "Difficulty concentrating", "Difficulty remembering",
+  "Fatigue or low energy", "Confusion", "Drowsiness", "More emotional",
+  "Irritability", "Sadness", "Nervous or anxious", "Trouble falling asleep (if applicable)"
+];
+const orientQs = [
+  ["What month is it?", "or_month"],
+  ["What is the date today?", "or_date"],
+  ["What is the day of the week?", "or_day"],
+  ["What year is it?", "or_year"],
+  ["What time is it right now? (within 1 hour)", "or_time"],
+];
+const wordLists = {
+  A: ["Jacket","Arrow","Pepper","Cotton","Movie","Dollar","Honey","Mirror","Saddle","Anchor"],
+  B: ["Finger","Penny","Blanket","Lemon","Insect","Candle","Paper","Sugar","Sandwich","Wagon"],
+  C: ["Baby","Monkey","Perfume","Sunset","Iron","Elbow","Apple","Carpet","Saddle","Bubble"],
+};
+const digitLists = {
+  A: [["4-9-3","6-2-9"],["3-8-1-4","3-2-7-9"],["6-2-9-7-1","1-5-2-8-6"],["7-1-8-4-6-2","5-3-9-1-4-8"]],
+  B: [["5-2-6","4-1-5"],["1-7-9-5","4-9-6-8"],["4-8-5-2-7","6-1-8-4-3"],["8-3-1-9-6-4","7-2-4-8-5-6"]],
+  C: [["1-4-2","6-5-8"],["6-8-3-1","3-4-8-1"],["4-9-1-5-3","6-8-2-5-1"],["3-7-6-5-1-9","9-2-6-5-1-4"]],
+};
+const monthsList = ["December","November","October","September","August","July","June","May","April","March","February","January"];
+
+// ---- State ----
+let state = {};
+let currentId = null;
+
+// ---- Index management ----
+function getIndex() {
+  try { return JSON.parse(localStorage.getItem(INDEX_KEY) || "[]"); }
+  catch { return []; }
+}
+function setIndex(arr) {
+  localStorage.setItem(INDEX_KEY, JSON.stringify(arr));
+}
+function updateIndexEntry(id, data) {
+  const idx = getIndex();
+  const existing = idx.findIndex(e => e.id === id);
+  const entry = {
+    id,
+    name: data.athleteName || "Unnamed athlete",
+    examDate: data.examDate || "",
+    injuryDate: data.injuryDate || "",
+    team: data.team || "",
+    dxConc: data.dxConc || "",
+    updated: Date.now(),
+  };
+  if (existing >= 0) idx[existing] = entry;
+  else idx.unshift(entry);
+  // Sort: most recently updated first
+  idx.sort((a,b) => b.updated - a.updated);
+  setIndex(idx);
+}
+function removeFromIndex(id) {
+  setIndex(getIndex().filter(e => e.id !== id));
+}
+
+// ---- Status / save flash ----
+function setStatus(msg) {
+  document.getElementById("saveStatus").textContent = msg || "";
+}
+function flashSaved() {
+  const f = document.getElementById("saveFlash");
+  f.classList.add("show");
+  clearTimeout(f._t);
+  f._t = setTimeout(() => f.classList.remove("show"), 1100);
+}
+
+// ---- Persistence ----
+let saveTimer = null;
+function persist(opts = {}) {
+  if (!currentId) return;
+  try {
+    localStorage.setItem(STORAGE_PREFIX + currentId, JSON.stringify(state));
+    updateIndexEntry(currentId, state);
+    if (!opts.silent) {
+      const stamp = new Date().toLocaleTimeString();
+      setStatus("saved · " + stamp);
+      flashSaved();
+    }
+  } catch (e) {
+    setStatus("⚠ save failed (storage full?)");
+  }
+}
+function debouncedSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 600);
+}
+
+// ---- Routing ----
+function goToLibrary() {
+  document.getElementById("libraryPage").classList.add("active");
+  document.getElementById("assessmentPage").classList.remove("active");
+  document.getElementById("assessmentToolbarBtns").style.display = "none";
+  setStatus("");
+  currentId = null;
+  renderLibrary();
+  window.scrollTo(0, 0);
+}
+function goToAssessment(id) {
+  currentId = id;
+  state = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX + id);
+    if (raw) state = JSON.parse(raw);
+  } catch {}
+  document.getElementById("libraryPage").classList.remove("active");
+  document.getElementById("assessmentPage").classList.add("active");
+  document.getElementById("assessmentToolbarBtns").style.display = "flex";
+  // Rebuild dependent tables for current state
+  buildImmediateMemory();
+  buildDelayedRecall();
+  buildDigits();
+  wireAllInputs();
+  applyStateToInputs();
+  recompute();
+  setStatus("opened");
+  window.scrollTo(0, 0);
+}
+function createNewAssessment() {
+  const id = "a_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+  currentId = id;
+  state = { examDate: new Date().toISOString().slice(0,10) };
+  persist({ silent: true });
+  goToAssessment(id);
+}
+function confirmDelete() {
+  if (!currentId) return;
+  openModal({
+    title: "Delete this assessment?",
+    msg: "This cannot be undone. The assessment will be removed from this device.",
+    confirmLabel: "Delete",
+    onConfirm: () => {
+      localStorage.removeItem(STORAGE_PREFIX + currentId);
+      removeFromIndex(currentId);
+      goToLibrary();
+    }
+  });
+}
+
+// ---- Modal ----
+function openModal({ title, msg, confirmLabel = "Confirm", onConfirm }) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent = msg;
+  const btn = document.getElementById("modalConfirm");
+  btn.textContent = confirmLabel;
+  btn.onclick = () => { onConfirm(); closeModal(); };
+  document.getElementById("modal").classList.add("show");
+}
+function closeModal() {
+  document.getElementById("modal").classList.remove("show");
+}
+document.getElementById("modal").addEventListener("click", (e) => {
+  if (e.target.id === "modal") closeModal();
+});
+
+// ---- Library rendering ----
+function renderLibrary() {
+  const list = document.getElementById("assessmentList");
+  const idx = getIndex();
+  if (idx.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⊕</div>
+        <h2>No assessments yet</h2>
+        <p>Tap "New Assessment" above to start your first one.</p>
+      </div>`;
+    return;
+  }
+  list.innerHTML = idx.map(e => {
+    const dxClass = e.dxConc === "Yes" ? "dx-yes" : e.dxConc === "No" ? "dx-no" : e.dxConc === "Deferred" ? "dx-deferred" : "dx-incomplete";
+    const dxLabel = e.dxConc ? `Dx: ${e.dxConc}` : "In progress";
+    const dateStr = e.examDate ? new Date(e.examDate).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "No date";
+    const updated = new Date(e.updated).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `
+      <div class="assessment-card" onclick="goToAssessment('${e.id}')">
+        <div class="name">${escapeHtml(e.name)}</div>
+        <div class="meta">
+          <span>📅 ${dateStr}</span>
+          ${e.team ? `<span>· ${escapeHtml(e.team)}</span>` : ""}
+        </div>
+        <div class="footer">
+          <span class="badge ${dxClass}">${dxLabel}</span>
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteFromLibrary('${e.id}', '${escapeHtml(e.name).replace(/'/g, "\\'")}')">Delete</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function deleteFromLibrary(id, name) {
+  openModal({
+    title: `Delete ${name}?`,
+    msg: "This cannot be undone.",
+    confirmLabel: "Delete",
+    onConfirm: () => {
+      localStorage.removeItem(STORAGE_PREFIX + id);
+      removeFromIndex(id);
+      renderLibrary();
+    }
+  });
+}
+
+// =====================================================================
+// Form builders
+// =====================================================================
+function ynRow(text, key) {
+  return `<tr>
+    <td class="question-text">${text}</td>
+    <td>
+      <div class="pill-group">
+        <input type="radio" name="${key}" value="Y" id="${key}_y" data-field="${key}" /><label for="${key}_y">Y</label>
+        <input type="radio" name="${key}" value="N" id="${key}_n" data-field="${key}" /><label for="${key}_n">N</label>
+      </div>
+    </td>
+  </tr>`;
+}
+function scoreRow01(text, key) {
+  return `<tr>
+    <td class="question-text">${text}</td>
+    <td>
+      <div class="pill-group">
+        <input type="radio" name="${key}" value="0" id="${key}_0" data-field="${key}" /><label for="${key}_0">0</label>
+        <input type="radio" name="${key}" value="1" id="${key}_1" data-field="${key}" /><label for="${key}_1">1</label>
+      </div>
+    </td>
+  </tr>`;
+}
+function buildYNTable(id, qs) {
+  document.getElementById(id).innerHTML =
+    `<tr><th>Question</th><th style="text-align:right;">Response</th></tr>` +
+    qs.map(([t,k]) => ynRow(t,k)).join("");
+}
+function buildScoreTable(id, qs) {
+  document.getElementById(id).innerHTML =
+    `<tr><th>Question</th><th style="text-align:right;">Score</th></tr>` +
+    qs.map(([t,k]) => scoreRow01(t,k)).join("");
+}
+function buildSymptomScale() {
+  const c = document.getElementById("symptomScale");
+  let html = `<div class="scale-row header">
+    <div class="scale-label">Symptom</div>
+    <div class="scale-cell">0</div><div class="scale-cell">1</div><div class="scale-cell">2</div>
+    <div class="scale-cell">3</div><div class="scale-cell">4</div><div class="scale-cell">5</div><div class="scale-cell">6</div>
+  </div>`;
+  symptoms.forEach((sx, i) => {
+    const k = "sx_" + i;
+    html += `<div class="scale-row"><div class="scale-label">${sx}</div>`;
+    for (let n = 0; n <= 6; n++) {
+      const cls = n === 0 ? "scale-cell zero" : (n >= 5 ? "scale-cell high" : "scale-cell");
+      html += `<div class="${cls}"><input type="radio" name="${k}" value="${n}" id="${k}_${n}" data-field="${k}"/><label for="${k}_${n}">${n}</label></div>`;
+    }
+    html += `</div>`;
+  });
+  c.innerHTML = html;
+}
+function buildOrientation() {
+  document.getElementById("orientationTable").innerHTML =
+    `<tr><th>Question</th><th style="text-align:right;">Score</th></tr>` +
+    orientQs.map(([t,k]) => scoreRow01(t,k)).join("");
+}
+function buildImmediateMemory() {
+  const list = state.wordList || "A";
+  const words = wordLists[list];
+  const altKeys = list === "A" ? ["B","C"] : list === "B" ? ["A","C"] : ["A","B"];
+  let html = `<thead><tr><th>List ${list}</th><th>Trial 1</th><th>Trial 2</th><th>Trial 3</th><th>Alt: List ${altKeys[0]}</th><th>Alt: List ${altKeys[1]}</th></tr></thead><tbody>`;
+  for (let i = 0; i < 10; i++) {
+    html += `<tr>
+      <td class="word">${words[i]}</td>
+      ${["t1","t2","t3"].map(t => `<td class="trial"><div class="pill-group">
+        <input type="radio" name="im_${i}_${t}" value="0" id="im_${i}_${t}_0" data-field="im_${i}_${t}" /><label for="im_${i}_${t}_0">0</label>
+        <input type="radio" name="im_${i}_${t}" value="1" id="im_${i}_${t}_1" data-field="im_${i}_${t}" /><label for="im_${i}_${t}_1">1</label>
+      </div></td>`).join("")}
+      <td class="alt">${wordLists[altKeys[0]][i]}</td>
+      <td class="alt">${wordLists[altKeys[1]][i]}</td>
+    </tr>`;
+  }
+  html += `<tr class="totals"><td>Trial Totals</td><td id="imT1">—</td><td id="imT2">—</td><td id="imT3">—</td><td colspan="2"></td></tr></tbody>`;
+  document.getElementById("immediateMemoryTable").innerHTML = html;
+}
+function buildDelayedRecall() {
+  const list = state.wordList || "A";
+  const words = wordLists[list];
+  let html = `<thead><tr><th>List ${list}</th><th>Recalled?</th></tr></thead><tbody>`;
+  for (let i = 0; i < 10; i++) {
+    html += `<tr>
+      <td class="word">${words[i]}</td>
+      <td class="trial"><div class="pill-group">
+        <input type="radio" name="dr_${i}" value="0" id="dr_${i}_0" data-field="dr_${i}" /><label for="dr_${i}_0">0</label>
+        <input type="radio" name="dr_${i}" value="1" id="dr_${i}_1" data-field="dr_${i}" /><label for="dr_${i}_1">1</label>
+      </div></td>
+    </tr>`;
+  }
+  html += `</tbody>`;
+  document.getElementById("delayedRecallTable").innerHTML = html;
+}
+function buildDigits() {
+  const list = state.digitList || "A";
+  const seqs = digitLists[list];
+  let html = `<thead><tr><th>String</th><th>Alt String</th><th>Pass / Fail</th><th>Score</th></tr></thead><tbody>`;
+  for (let i = 0; i < 4; i++) {
+    const [s1, s2] = seqs[i];
+    html += `<tr>
+      <td class="seq">${s1}</td>
+      <td class="seq" style="color: var(--ink-mute);">${s2}</td>
+      <td>
+        <div class="pill-group">
+          <input type="radio" name="dg_${i}" value="1" id="dg_${i}_p" data-field="dg_${i}" /><label for="dg_${i}_p">Pass</label>
+          <input type="radio" name="dg_${i}" value="0" id="dg_${i}_f" data-field="dg_${i}" /><label for="dg_${i}_f">Fail</label>
+        </div>
+      </td>
+      <td><span id="dg_${i}_score">—</span></td>
+    </tr>`;
+  }
+  html += `</tbody>`;
+  document.getElementById("digitsTable").innerHTML = html;
+}
+function buildMonths() {
+  const c = document.getElementById("monthsRow");
+  c.innerHTML = monthsList.map(m =>
+    `<div class="month-chip" data-month="${m}">${m}</div>`
+  ).join("");
+  c.querySelectorAll(".month-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      chip.classList.toggle("active");
+      state["mo_" + chip.dataset.month] = chip.classList.contains("active");
+      recompute();
+      debouncedSave();
+    });
+  });
+}
+
+// =====================================================================
+// Score recomputation
+// =====================================================================
+function recompute() {
+  // GCS
+  const e = +state.gcs_e || 0, v = +state.gcs_v || 0, m = +state.gcs_m || 0;
+  document.getElementById("gcsTotal").textContent = (e&&v&&m) ? (e+v+m) : "—";
+
+  // Maddocks
+  let maddocks = 0;
+  ["md_venue","md_half","md_scored","md_lastteam","md_won"].forEach(k => { if (state[k] === "1") maddocks++; });
+  document.getElementById("maddocksTotal").textContent = maddocks + " / 5";
+
+  // Symptoms
+  let sxCount = 0, sxSev = 0;
+  for (let i = 0; i < 22; i++) {
+    const v = +state["sx_" + i];
+    if (v && v > 0) { sxCount++; sxSev += v; }
+  }
+  document.getElementById("sxCount").textContent = sxCount + " / 22";
+  document.getElementById("sxSev").textContent = sxSev + " / 132";
+  document.getElementById("dec_sxnum").textContent = sxCount;
+  document.getElementById("dec_sxsev").textContent = sxSev;
+
+  // Orientation
+  let orient = 0;
+  ["or_month","or_date","or_day","or_year","or_time"].forEach(k => { if (state[k] === "1") orient++; });
+  document.getElementById("orientTotal").textContent = orient + " / 5";
+  document.getElementById("totOrient").textContent = orient + " / 5";
+  document.getElementById("dec_orient").textContent = orient;
+
+  // Immediate memory
+  let im = 0, imT1 = 0, imT2 = 0, imT3 = 0;
+  for (let i = 0; i < 10; i++) {
+    if (state[`im_${i}_t1`] === "1") { im++; imT1++; }
+    if (state[`im_${i}_t2`] === "1") { im++; imT2++; }
+    if (state[`im_${i}_t3`] === "1") { im++; imT3++; }
+  }
+  const imT1El = document.getElementById("imT1");
+  if (imT1El) {
+    imT1El.textContent = imT1;
+    document.getElementById("imT2").textContent = imT2;
+    document.getElementById("imT3").textContent = imT3;
+  }
+  document.getElementById("immediateMemoryTotal").textContent = im + " / 30";
+  document.getElementById("totIm").textContent = im + " / 30";
+  document.getElementById("dec_im").textContent = im;
+
+  // Digits
+  let digits = 0;
+  for (let i = 0; i < 4; i++) {
+    const v = state[`dg_${i}`];
+    const cell = document.getElementById(`dg_${i}_score`);
+    if (cell) cell.textContent = v === "1" ? "1" : v === "0" ? "0" : "—";
+    if (v === "1") digits++;
+  }
+  document.getElementById("digitsTotal").textContent = digits + " / 4";
+
+  // Months
+  const monthsTime = +state.monthsTime;
+  const monthsErrors = +state.monthsErrors;
+  let monthsScore = 0;
+  if (monthsTime > 0 && monthsTime < 30 && (!monthsErrors || monthsErrors === 0)) monthsScore = 1;
+  document.getElementById("monthsScore").textContent = monthsScore + " / 1";
+
+  const conc = digits + monthsScore;
+  document.getElementById("concTotal").textContent = conc + " / 5";
+  document.getElementById("totConc").textContent = conc + " / 5";
+  document.getElementById("dec_conc").textContent = conc;
+
+  // Delayed recall
+  let dr = 0;
+  for (let i = 0; i < 10; i++) if (state[`dr_${i}`] === "1") dr++;
+  document.getElementById("delayedTotal").textContent = dr + " / 10";
+  document.getElementById("totDr").textContent = dr + " / 10";
+  document.getElementById("dec_dr").textContent = dr;
+
+  const cogTotal = orient + im + conc + dr;
+  document.getElementById("totCog").textContent = cogTotal + " / 50";
+  document.getElementById("dec_cogtot").textContent = cogTotal;
+
+  // mBESS
+  const bess = (+state.bess_dl || 0) + (+state.bess_ts || 0) + (+state.bess_sl || 0);
+  document.getElementById("bessTotal").textContent = bess + " / 30";
+  document.getElementById("dec_bess").textContent = bess;
+  const foam = (+state.foam_dl || 0) + (+state.foam_ts || 0) + (+state.foam_sl || 0);
+  document.getElementById("foamTotal").textContent = foam + " / 30";
+
+  // Tandem gait
+  const tgs = [+state.tg1, +state.tg2, +state.tg3].filter(x => !isNaN(x) && x > 0);
+  if (tgs.length > 0) {
+    const avg = (tgs.reduce((a,b)=>a+b,0) / tgs.length).toFixed(2);
+    const fastest = Math.min(...tgs).toFixed(2);
+    document.getElementById("tgAvg").value = avg + " s";
+    document.getElementById("tgFastest").value = fastest + " s";
+    document.getElementById("dec_tg").textContent = fastest + " s";
+  } else {
+    document.getElementById("tgAvg").value = "";
+    document.getElementById("tgFastest").value = "";
+    document.getElementById("dec_tg").textContent = "—";
+  }
+  const dts = [+state.dt1_time, +state.dt2_time, +state.dt3_time].filter(x => !isNaN(x) && x > 0);
+  document.getElementById("dec_dt").textContent = dts.length ? Math.min(...dts).toFixed(2) + " s" : "—";
+}
+
+// =====================================================================
+// Wiring
+// =====================================================================
+function applyStateToInputs() {
+  document.querySelectorAll("[data-field]").forEach(el => {
+    const k = el.dataset.field;
+    if (state[k] === undefined || state[k] === null) {
+      if (el.type === "radio" || el.type === "checkbox") el.checked = false;
+      else { el.value = ""; el.classList.remove("has-value"); }
+      return;
+    }
+    if (el.type === "radio") {
+      el.checked = (el.value === String(state[k]));
+    } else if (el.type === "checkbox") {
+      el.checked = !!state[k];
+    } else {
+      el.value = state[k];
+      if (state[k] !== "") el.classList.add("has-value");
+    }
+  });
+  document.querySelectorAll(".month-chip").forEach(c => {
+    c.classList.toggle("active", !!state["mo_" + c.dataset.month]);
+  });
+}
+
+function wireInput(el) {
+  if (el._wired) return;
+  el._wired = true;
+  const k = el.dataset.field;
+  if (!k) return;
+  const handler = () => {
+    if (el.type === "radio") {
+      if (el.checked) state[k] = el.value;
+    } else if (el.type === "checkbox") {
+      state[k] = el.checked;
+    } else {
+      state[k] = el.value;
+      if (el.value === "") el.classList.remove("has-value");
+      else el.classList.add("has-value");
+    }
+    if (k === "wordList") {
+      buildImmediateMemory();
+      buildDelayedRecall();
+      wireAllInputs();
+      applyStateToInputs();
+    }
+    if (k === "digitList") {
+      buildDigits();
+      wireAllInputs();
+      applyStateToInputs();
+    }
+    recompute();
+    debouncedSave();
+  };
+  el.addEventListener("input", handler);
+  el.addEventListener("change", handler);
+}
+function wireAllInputs() {
+  document.querySelectorAll("[data-field]").forEach(wireInput);
+}
+
+// =====================================================================
+// Init (build static parts once)
+// =====================================================================
+buildYNTable("observableSignsTable", observableSigns);
+buildYNTable("cervicalTable", cervicalQs);
+buildYNTable("coordTable", coordQs);
+buildScoreTable("maddocksTable", maddocksQs);
+buildYNTable("bgTable", bgQs);
+buildSymptomScale();
+buildOrientation();
+buildMonths();
+
+// Start at library
+renderLibrary();
+
+// Service worker registration (PWA)
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
