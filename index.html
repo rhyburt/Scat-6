@@ -437,6 +437,35 @@
   }
   .qtable td:last-child, .qtable th:last-child { text-align: right; }
   .qtable .question-text { color: var(--ink); }
+  .dt-key {
+    margin: 8px 0 16px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--paper-soft);
+  }
+  .dt-key-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .dt-key-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+  .dt-key-row + .dt-key-row { border-top: 1px solid var(--line-soft); }
+  .dt-key-label { flex: 0 0 64px; color: var(--ink-mute); font-size: 12px; }
+  .dt-key-seq {
+    font-family: 'JetBrains Mono', monospace;
+    word-spacing: 4px;
+    color: var(--ink);
+  }
 
   /* Symptom 0-6 scale */
   #symptomScale { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -1103,7 +1132,13 @@
 
       <h3>Dual Task Tandem Gait <span style="font-weight: 400; font-size: 11px; color: var(--ink-mute); text-transform: none; letter-spacing: 0;">(Optional)</span></h3>
       <div class="instruction">"Now while you walk heel-to-toe, count backwards out loud by 7s. Starting integer 88, go!"</div>
-      <p style="font-size: 12px; color: var(--ink-mute);">Trial 1: 88 · Trial 2: 90 · Trial 3: 98</p>
+      <div class="dt-key">
+        <div class="dt-key-title">Answer key (serial 7s)</div>
+        <div class="dt-key-row"><span class="dt-key-label">Trial 1</span><span class="dt-key-seq" data-dt-start="88"></span></div>
+        <div class="dt-key-row"><span class="dt-key-label">Trial 2</span><span class="dt-key-seq" data-dt-start="90"></span></div>
+        <div class="dt-key-row"><span class="dt-key-label">Trial 3</span><span class="dt-key-seq" data-dt-start="98"></span></div>
+        <div class="dt-key-row"><span class="dt-key-label">Alternate</span><span class="dt-key-seq" id="dtAltSeq"></span></div>
+      </div>
       <table class="qtable">
         <tr><th>Trial</th><th>Errors</th><th>Time (sec)</th></tr>
         <tr><td>Trial 1 (88)</td><td><input type="number" data-field="dt1_err" style="width: 60px;"/></td><td><input type="number" step="0.01" data-field="dt1_time" style="width: 80px;"/></td></tr>
@@ -1722,9 +1757,21 @@ function recompute() {
     document.getElementById("tgFastest").value = "";
     document.getElementById("dec_tg").textContent = "—";
   }
+  const altStart = parseInt(state.dt_alt_int, 10);
+  document.getElementById("dtAltSeq").textContent =
+    altStart > 0 ? serialSevens(altStart) : "Enter an alternate starting integer";
   const dts = [+state.dt1_time, +state.dt2_time, +state.dt3_time].filter(x => !isNaN(x) && x > 0);
   document.getElementById("dec_dt").textContent = dts.length ? Math.min(...dts).toFixed(2) + " s" : "—";
 }
+
+function serialSevens(start) {
+  const seq = [];
+  for (let n = start; n >= 0; n -= 7) seq.push(n);
+  return seq.join(" ");
+}
+document.querySelectorAll("[data-dt-start]").forEach(el => {
+  el.textContent = serialSevens(+el.dataset.dtStart);
+});
 
 // =====================================================================
 // Wiring

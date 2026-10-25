@@ -1,6 +1,6 @@
 // SCAT6 PWA — Service Worker
 // Bumps cache version on each release to force refresh
-const CACHE = "scat6-v1";
+const CACHE = "scat6-v2";
 const ASSETS = [
   "./",
   "./index.html",
